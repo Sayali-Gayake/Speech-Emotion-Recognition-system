@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Dashboard - Overall Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg,#1e1e3f,#2a2a5f,#3a3a7f); font-family:'Poppins',sans-serif; margin:0; color:black; }
+        header { background:#904990; padding:15px; text-align:center; color:white; }
+        .container { width:90%; max-width:1100px; margin:40px auto; background:#fff; padding:40px; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.4); }
+        .summary { display:flex; justify-content:center; gap:15px; margin-bottom:20px; flex-wrap:wrap; }
+        .card { background:#fafafa; padding:15px; border-radius:12px; flex:1; max-width:220px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+        .badge { padding:4px 10px; border-radius:15px; font-size:12px; font-weight:500; color:white; }
+        .high { background:#d32f2f; } .medium { background:#f57c00; } .low { background:#388e3c; }
+        .charts { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; margin-top:30px; }
+        .chart-box { flex:1; min-width:300px; max-width:400px; height:250px; }
+        canvas { width:100%!important; height:100%!important; background:#fff; border-radius:12px; padding:10px; }
+        footer { margin-top:30px; background:#904990; text-align:center; padding:10px; font-size:12px; color:white; }
+        .navbar {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 15px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.2); /* subtle line */
+    padding-bottom: 10px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    position: relative;
+    padding: 5px 0;
+}
+
+.navbar a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background: #fff;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.navbar a:hover::after {
+    transform: scaleX(1); /* underline appears on hover */
+}
+
+    </style>
+</head>
+<body>
+<header>
+    <h1>Dashboard - Overall Analysis for {{ user_name }}</h1>
+    <nav class="navbar">
+    <a href="{{ url_for('home') }}">Home</a>
+    <a href="{{ url_for('history') }}">History</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</nav>
+
+</header>
+
+<main class="container">
+    <!-- Summary Cards -->
+    <div class="summary">
+        <div class="card">
+            <h3>Most Frequent Emotion</h3>
+            <p>{{ most_frequent_emotion }}</p>
+        </div>
+        <div class="card">
+            <h3>Negative Emotion Ratio</h3>
+            <p>{{ risk_value }}%</p>
+        </div>
+        <div class="card">
+            <h3>Depression Risk</h3>
+            {% if risk_level == "High" %}
+                <span class="badge high">High</span>
+            {% elif risk_level == "Medium" %}
+                <span class="badge medium">Medium</span>
+            {% else %}
+                <span class="badge low">Low</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts">
+        <div class="chart-box"><canvas id="overallEmotionChart"></canvas></div>
+        <div class="chart-box"><canvas id="riskChart"></canvas></div>
+        <div class="chart-box"><canvas id="trendChart"></canvas></div>
+    </div>
+</main>
+
+<footer>
+    © 2026 | Speech Emotion Recognition System | Mental Health Monitoring
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Bar Chart: Overall Emotion Distribution
+    new Chart(document.getElementById('overallEmotionChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ emotion_labels|tojson }},
+            datasets: [{
+                label: 'Overall Emotion Distribution',
+                data: {{ emotion_values|tojson }},
+                backgroundColor: '#2979ff'
+            }]
+
+        },
+        options: { responsive:true, scales:{ y:{ beginAtZero:true, max:1 } } }
+    });
+
+    // Pie Chart: Depression Risk
+    new Chart(document.getElementById('riskChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Negative Emotions','Positive/Neutral'],
+            datasets: [{
+                data: [{{ risk_value }}, 100 - {{ risk_value }}],
+                backgroundColor: ['#d32f2f','#4caf50']
+            }]
+        },
+        options: { responsive:true, plugins:{ title:{ display:true, text:'Depression Risk (%)' } } }
+    });
+
+    // Line Chart: Risk Trend (last 14 days)
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: {{ daily_risk|map(attribute='date')|list|tojson }},
+            datasets: [{
+                label: 'Daily Negative Emotion Risk',
+                data: {{ daily_risk|map(attribute='risk')|list|tojson }},
+                borderColor: '#f57c00',
+                fill: false,
+                tension: 0.1
+            }]
+        },
+        options: { responsive:true, plugins:{ title:{ display:true, text:'Risk Trend (Last 14 Days)' } }, scales:{ y:{ beginAtZero:true, max:100 } } }
+    });
+</script>
+</body>
+</html>

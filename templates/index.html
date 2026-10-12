@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Speech Emotion & Depression Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            width: 500px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        button {
+            padding: 10px 20px;
+            margin: 8px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .start { background: #00c853; color: white; }
+        .stop { background: #d50000; color: white; }
+        .analyze { background: #2962ff; color: white; }
+        canvas {
+            margin-top: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+        input[type="file"] { margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Speech Emotion Detection</h2>
+
+    <!-- Upload Recorded Audio -->
+    <form id="uploadForm" method="POST" enctype="multipart/form-data">
+        <input type="file" name="audio" accept=".wav,.webm" required>
+        <br>
+        <button class="analyze" type="submit">Upload & Analyze</button>
+    </form>
+
+    <hr>
+
+    <h3>Live Recording</h3>
+    <button id="recordBtn" class="start">Start</button>
+    <button id="stopBtn" class="stop" disabled>Stop</button>
+    <button id="analyzeBtn" class="analyze" disabled>Analyze</button>
+
+    <canvas id="waveform" width="450" height="100"></canvas>
+
+    <div id="recordingStatus" style="margin-top:15px; font-size:14px; color:white;">
+        Status: Idle
+    </div>
+</div>
+
+<script>
+let mediaRecorder, audioChunks = [], recordedBlob = null;
+let audioContext, analyser, source, animationId;
+
+const recordBtn = document.getElementById("recordBtn");
+const stopBtn = document.getElementById("stopBtn");
+const analyzeBtn = document.getElementById("analyzeBtn");
+const canvas = document.getElementById("waveform");
+const ctx = canvas.getContext("2d");
+
+// ✅ Upload form handler (Recorded Audio → /index)
+document.getElementById("uploadForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    try {
+        const response = await fetch("/index", { method: "POST", body: formData });
+        const result = await response.json();
+
+        window.location.href = `/result?emotion=${result.emotion}&confidence=${result.confidence}&risk=${result.risk}&score=${result.score}&file_size=${result.file_size}&duration=${result.duration}&source_type=Recorded+Audio`;
+    } catch (err) {
+        alert("❌ Error uploading audio!");
+    }
+};
+
+// // ✅ Start button
+recordBtn.onclick = async () => {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true
+        });
+
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+
+        source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        mediaRecorder = new MediaRecorder(stream);
+
+        audioChunks = [];
+        recordedBlob = null;
+
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                audioChunks.push(e.data);
+            }
+        };
+
+        mediaRecorder.start();
+
+        drawWaveform();
+
+        recordBtn.disabled = true;
+        stopBtn.disabled = false;
+        analyzeBtn.disabled = true;
+
+        document.getElementById("recordingStatus").innerText =
+            "🎙️ Recording started...";
+    }
+    catch (err) {
+        console.error("Microphone Error:", err);
+
+        document.getElementById("recordingStatus").innerText =
+            `❌ ${err.name}: ${err.message}`;
+
+        alert(`Microphone Error\n\n${err.name}\n${err.message}`);
+    }
+};
+// ✅ Stop button
+stopBtn.onclick = () => {
+    mediaRecorder.stop();
+    cancelAnimationFrame(animationId);
+
+    mediaRecorder.onstop = () => {
+        recordedBlob = new Blob(audioChunks, { type: "audio/webm" });
+        analyzeBtn.disabled = false;
+        document.getElementById("recordingStatus").innerText = "⏹️ Recording stopped. Ready to analyze.";
+    };
+
+    recordBtn.disabled = false;
+    stopBtn.disabled = true;
+};
+
+// ✅ Analyze button (Live Audio → /upload_live_audio)
+analyzeBtn.onclick = async () => {
+    if (!recordedBlob || recordedBlob.size === 0) {
+        alert("Recording failed. Please try again.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("audio", recordedBlob, "recording.webm");
+
+    try {
+        const response = await fetch("/upload_live_audio", { method: "POST", body: formData });
+        if (!response.ok) {
+            const text = await response.text();
+            console.error("Server error:", text);
+            alert("❌ Server returned error: " + text);
+            return;
+        }
+
+        const result = await response.json();
+        console.log("Result JSON:", result)
+
+        window.location.href = `/result?emotion=${result.emotion}&confidence=${result.confidence}&risk=${result.risk}&score=${result.score}&file_size=${result.file_size}&duration=${result.duration}&source_type=Live+Audio`;
+    } catch (err) {
+        console.error("Fetch failed:", err);
+        alert("❌ Error analyzing audio!");
+    }
+};
+
+// ✅ Waveform function
+function drawWaveform() {
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+        animationId = requestAnimationFrame(draw);
+        analyser.getByteTimeDomainData(dataArray);
+
+        ctx.fillStyle = "rgba(0,0,0,0.2)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#fff";
+        ctx.beginPath();
+
+        let sliceWidth = canvas.width / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            let v = dataArray[i] / 128.0;
+            let y = v * canvas.height / 2;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+            x += sliceWidth;
+        }
+        ctx.stroke();
+    }
+    draw();
+}
+</script>
+</body>
+</html>

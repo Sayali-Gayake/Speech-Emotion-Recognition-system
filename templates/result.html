@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Speech Emotion Recognition Result</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { background: #1e1e3f; color: white; font-family: 'Poppins', sans-serif; margin: 0; }
+        header { background: #904990; padding: 20px; text-align: center; }
+        .container { width: 90%; max-width: 800px; margin: 40px auto; background: rgba(255,255,255,0.12); padding: 30px; border-radius: 15px; }
+        .progress-bar { width: 100%; background: rgba(255,255,255,0.2); border-radius: 20px; overflow: hidden; margin: 15px 0; }
+        .progress { height: 20px; background: #00e5ff; text-align: center; color: #000; }
+        .badge { padding: 6px 14px; border-radius: 20px; color: white; }
+        .high { background: #d32f2f; }
+        .medium { background: #f57c00; }
+        .low { background: #388e3c; }
+        .btn { padding: 10px 20px; border-radius: 20px; background: #1976d2; color: white; margin: 10px; border: none; cursor: pointer; }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Speech Emotion Recognition Result</h1>
+</header>
+
+<main class="container">
+
+    <h2>Analysis for <span style="color:#00e5ff;">{{ user_name }}</span></h2>
+
+    <p><strong>Detected Emotion:</strong> {{ emotion }}</p>
+
+    <p><strong>Confidence:</strong></p>
+    <div class="progress-bar">
+        <div class="progress" style="width:{{ confidence }}%">{{ confidence }}%</div>
+    </div>
+
+    <p><strong>Depression Score:</strong> {{ depression_score }}/100</p>
+
+    <p><strong>Risk Level:</strong>
+        {% if risk == "High" %}
+            <span class="badge high">High Risk</span>
+        {% elif risk == "Medium" %}
+            <span class="badge medium">Medium Risk</span>
+        {% else %}
+            <span class="badge low">Low Risk</span>
+        {% endif %}
+    </p>
+
+    <!-- ✅ GRAPH SECTION -->
+    <h3 style="margin-top:30px;">Emotion Distribution</h3>
+    <canvas id="emotionChart" style="background:white; border-radius:10px;"></canvas>
+
+    <!-- Buttons -->
+    <div style="text-align:center; margin-top:20px;">
+        <a href="/history">
+            <button class="btn">View History</button>
+        </a>
+        <a href="/index">
+            <button class="btn">Analyze Another</button>
+        </a>
+    </div>
+
+</main>
+
+<!-- ✅ SCRIPT MUST BE AT BOTTOM -->
+<script>
+const labels = {{ labels | tojson }};
+const data = {{ probabilities | tojson }};
+
+new Chart(document.getElementById('emotionChart'), {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Emotion Probability',
+            data: data,
+            backgroundColor: [
+                '#00e5ff', '#904990', '#388e3c', '#f57c00',
+                '#d32f2f', '#9c27b0', '#ffeb3b', '#4caf50'
+            ]
+        }]
+    },
+    options: {
+        scales: {
+            y: { beginAtZero: true, max: 1 }
+        }
+    }
+});
+</script>
+
+
+</body>
+</html>

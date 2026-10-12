@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="SER Depression Detection - Logout Page">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logout | SER Depression Detection</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); /* dark gradient */
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      background: rgba(255,255,255,0.15);
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      width: 400px;
+      height: 250px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    }
+    h2 {
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    p {
+      margin-bottom: 30px;
+      font-weight: 300;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 8px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.3s;
+      margin-top: 60px;
+    }
+    .btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 12px rgba(255,255,255,0.6);
+    }
+    .home { background: #2979ff; color: #fff; }
+    .login { background: #00c853; color: #fff; }
+    .about { background: #9b59b6; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>You have been logged out</h2>
+    <p>Thank you for using the system.</p>
+
+    <!-- Navigation buttons -->
+    <a href="/"><button class="btn home" aria-label="Go to Home">Home</button></a>
+    <a href="/login"><button class="btn login" aria-label="Login">Login Again</button></a>
+    <a href="/about"><button class="btn about" aria-label="About">About</button></a>
+  </div>
+</body>
+</html>

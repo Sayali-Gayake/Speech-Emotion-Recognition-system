@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>User History - Emotion Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1e3f, #2a2a5f, #3a3a7f);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+        }
+        header {
+            background: #904990;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        header h1 { font-weight: 600; margin: 0; }
+
+        /* Navigation Bar */
+        nav {
+            background: #6a2f6a;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+        nav a:hover {
+            background: #904990;
+            box-shadow: 0 0 8px rgba(255,255,255,0.6);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 40px auto;
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        th {
+            background: rgba(255,255,255,0.2);
+            font-weight: 600;
+        }
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 500; color: white; }
+        .high { background: #d32f2f; }
+        .medium { background: #f57c00; }
+        .low { background: #388e3c; }
+        .source { font-style: italic; color: #00e5ff; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(90deg, #1565c0, #1976d2);
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 500;
+            margin: 10px;
+        }
+        .btn:hover, .btn:focus {
+            background: linear-gradient(90deg, #0d47a1, #1565c0);
+            transform: scale(1.08);
+            outline: none;
+            box-shadow: 0 0 12px rgba(255,255,255,0.6);
+        }
+        footer {
+            margin-top: auto;
+            background: #904990;
+            text-align: center;
+            padding: 12px;
+            font-size: 13px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>User History - {{ user_name }}</h1>
+</header>
+
+<!-- Navigation Bar -->
+<!-- <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/history">History</a>
+    <a href="/index">Analyze</a>
+    <a href="/download_full_history/{{ user_name }}">Report</a>
+</nav> -->
+
+<main class="container">
+    <!-- History Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Session ID</th>
+                <th>Date</th>
+                <th>Emotion</th>
+                <th>Confidence</th>
+                <th>Depression Score</th>
+                <th>Risk Level</th>
+                <th>Source</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if history %}
+                {% for record in history %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ record.date }}</td>
+                    <td>{{ record.emotion }}</td>
+                    <td>{{ record.confidence }}%</td>
+                    <td>{{ record.depression_score }}/100</td>
+                    <td>
+                        {% if record.risk == "High" %}
+                            <span class="badge high">High</span>
+                        {% elif record.risk == "Medium" %}
+                            <span class="badge medium">Medium</span>
+                        {% else %}
+                            <span class="badge low">Low</span>
+                        {% endif %}
+                    </td>
+                    <td class="source">{{ record.source_type }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="7">No history available for {{ user_name }}</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Buttons -->
+    <div style="text-align:center; margin-top:20px;">
+        <a href="/index"><button class="btn">Analyze Another Audio</button></a>
+        <a href="/dashboard"><button class="btn">Dashboard</button></a>
+        <a href="/download_full_history/{{ user_name }}"><button class="btn">Download Full History</button></a>
+    </div>
+</main>
+
+<footer>
+    © 2026 | Speech Emotion Recognition System | Mental Health Monitoring
+</footer>
+</body>
+</html>

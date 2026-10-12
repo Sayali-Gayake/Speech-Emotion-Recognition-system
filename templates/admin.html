@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Admin | Emotion Analysis History</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+          background: linear-gradient(135deg, #1e1e3f, #2a2a5f, #3a3a7f);
+          min-height: 100vh;
+          font-family: 'Poppins', sans-serif;
+          margin: 0;
+        }
+        header {
+          text-align: center;
+          padding: 25px;
+          background: linear-gradient(90deg,#904990);
+          color: white;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        header h1 {
+          font-weight: 600;
+          letter-spacing: 1px;
+        }
+        .container {
+          width: 85%;
+          margin: 40px auto;
+          background: white;
+          padding: 30px;
+          border-radius: 20px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+          animation: fadeIn 1s ease;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+          border-radius: 10px;
+          overflow: hidden;
+        }
+        caption {
+          text-align: left;
+          font-weight: 600;
+          margin-bottom: 10px;
+          color: #1565c0;
+        }
+        thead {
+          background: linear-gradient(90deg,#904990);
+          color: white;
+        }
+        th, td {
+          padding: 12px;
+          text-align: center;
+        }
+        tbody tr:nth-child(even) { background: #f9f9f9; }
+        tbody tr:hover { background: #f1f8ff; transition: 0.3s; }
+        .badge {
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 500;
+          color: white;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .high { background: #d32f2f; }
+        .medium { background: #f57c00; }
+        .low { background: #388e3c; }
+        .confidence {
+          font-weight: 600;
+          color: #1565c0;
+        }
+        .btn {
+          padding: 12px 24px;
+          border: none;
+          border-radius: 30px;
+          background: linear-gradient(90deg, #1565c0, #1976d2);
+          color: white;
+          cursor: pointer;
+          transition: 0.3s;
+          font-weight: 500;
+          margin: 10px;
+        }
+        .btn:hover, .btn:focus {
+          background: linear-gradient(90deg, #0d47a1, #1565c0);
+          transform: scale(1.08);
+          outline: none;
+          box-shadow: 0 0 12px rgba(0,0,0,0.3);
+        }
+        .btn-container {
+          text-align: center;
+          margin-top: 30px;
+        }
+        footer {
+          text-align: center;
+          padding: 15px;
+          background: linear-gradient(90deg, #904990);
+          color: white;
+          font-size: 13px;
+          box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+        }
+        .filter-container { margin-bottom: 20px; }
+        label { font-weight: 500; margin-right: 10px; }
+        select {
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: 1px solid #1565c0;
+          font-family: 'Poppins', sans-serif;
+          margin-right: 10px;
+        }
+        select:focus {
+          outline: none;
+          border-color: #0d47a1;
+          box-shadow: 0 0 8px rgba(21,101,192,0.5);
+        }
+    </style>
+</head>
+<body>
+<header role="banner">
+    <h1>Emotion & Depression Records</h1>
+</header>
+<!-- <nav style="text-align:center; margin:20px;">
+    <a href="/"><button class="btn">Home</button></a>
+    <a href="/dashboard/{{ user_name }}"><button class="btn">Dashboard</button></a>
+    <a href="/history?selected_user={{ user_name }}"><button class="btn">History</button></a>
+    {% if session.get("role") == "admin" %}
+        <a href="/admin"><button class="btn">Admin</button></a>
+    {% endif %}
+    <a href="/about"><button class="btn">About</button></a>
+    <a href="/logout"><button class="btn">Logout</button></a>
+</nav> -->
+
+
+
+<main class="container" role="main">
+    <!-- Filter for Admin -->
+    <div class="filter-container" role="search">
+        <form method="GET" action="/admin" aria-label="Filter history by user">
+            <label for="userSelect">Select User:</label>
+            <select id="userSelect" name="selected_user" aria-label="Select a user to view history">
+                <option value="all">All Users</option>
+                {% for user in users %}
+                    <option value="{{ user }}">{{ user }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn" aria-label="Filter history">Filter</button>
+        </form>
+    </div>
+
+    <!-- History Table -->
+    <table aria-label="Emotion and Depression History Table">
+        <caption>Recorded sessions of emotion and depression analysis</caption>
+        <thead>
+            <tr>
+                <th scope="col">Session ID</th>
+                <th scope="col">User</th>
+                <th scope="col">Emotion</th>
+                <th scope="col">Confidence</th>
+                <th scope="col">Risk Level</th>
+                <th scope="col">Depression Score</th>
+                <th scope="col">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td class="confidence">{{ row[3] }}%</td>
+                <td>
+                    {% if row[4] == "High" %}
+                        <span class="badge high" aria-label="High Risk">High Risk</span>
+                    {% elif row[4] == "Medium" %}
+                        <span class="badge medium" aria-label="Medium Risk">Medium Risk</span>
+                    {% else %}
+                        <span class="badge low" aria-label="Low Risk">Low Risk</span>
+                    {% endif %}
+                </td>
+                <td>{{ row[5] }}/100</td>
+                <td>{{ row[6] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Navigation Buttons -->
+    <div class="btn-container">
+        <a href="/dashboard"><button class="btn" aria-label="Back to Dashboard">Back to Dashboard</button></a>
+        <a href="/"><button class="btn" aria-label="Go to Home Page">Home</button></a>
+    </div>
+</main>
+
+<footer role="contentinfo">
+    © 2026 | Speech Emotion Recognition | Mental Health Monitoring System
+</footer>
+</body>
+</html>
