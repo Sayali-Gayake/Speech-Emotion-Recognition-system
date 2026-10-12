@@ -1,0 +1,11 @@
+tensorflow
+keras
+librosa
+numpy
+pandas
+flask
+matplotlib
+seaborn
+scikit-learn
+sounddevice
+scipy
